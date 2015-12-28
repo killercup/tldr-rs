@@ -15,7 +15,7 @@ extern crate clap;
 #[macro_use]
 extern crate quick_error;
 
-use std::io::{stderr, Read, Write};
+use std::io::{stderr, stdout, Read, Write};
 use clap::{Arg, App};
 use hyper::client::response::Response as HttpResponse;
 
@@ -44,10 +44,19 @@ fn fetch_tldr(command: &str, platform: &str) -> Result<HttpResponse, Error> {
 }
 
 fn render_tldr<R: Read>(text: &mut R) -> Result<(), Error> {
-    let mut buf = String::with_capacity(1024);
-    try!(text.read_to_string(&mut buf));
+    pipe(text, &mut stdout())
+}
 
-    println!("{}", buf);
+fn pipe<R: Read, W: Write>(input: &mut R, output: &mut W) -> Result<(), Error> {
+    let mut buffer = [0; 1024];
+
+    loop {
+        let written = try!(input.read(&mut buffer));
+        if written == 0 { break; }
+        try!(output.write_all(&buffer[0..written]));
+        buffer = [0; 1024];
+    }
+
     Ok(())
 }
 
