@@ -9,7 +9,8 @@
 
 extern crate hyper;
 extern crate clap;
-#[macro_use] extern crate quick_error;
+#[macro_use]
+extern crate quick_error;
 
 use std::io::{stderr, Read, Write};
 use clap::{Arg, App};
@@ -22,17 +23,15 @@ const PLATFORM: &'static str = "linux";
 
 fn fetch_tldr(command: &str, platform: &str) -> Result<HttpResponse, Error> {
     let client = hyper::Client::new();
-    let url = format!(
-        "http://raw.github.com/rprieto/tldr/master/pages/{platform}/{page}.md",
-        platform = platform,
-        page = command
-    );
+    let url = format!("http://raw.github.com/rprieto/tldr/master/pages/{platform}/{page}.md",
+                      platform = platform,
+                      page = command);
 
     let res = try!(client.get(&url)
-        .header(hyper::header::Connection::close())
-        .header(hyper::header::ContentType::plaintext())
-        .send()
-        .map_err(|err| Error::HttpRequest(command.to_owned(), err)));
+                         .header(hyper::header::Connection::close())
+                         .header(hyper::header::ContentType::plaintext())
+                         .send()
+                         .map_err(|err| Error::HttpRequest(command.to_owned(), err)));
 
     if res.status.is_success() {
         Ok(res)
@@ -73,22 +72,23 @@ quick_error! {
 
 fn main() {
     let matches = App::new("tldr")
-            .version(env!("CARGO_PKG_VERSION"))
-            .author("Pascal Hertleif <killercup@gmail.com>")
-            .about("Simplified and community-driven man pages")
-            .arg(Arg::with_name("command")
-                        .help("Fetch the docs for command and render them to the terminal.")
-                        .required(true)
-                        .index(1))
-            .get_matches();
+                      .version(env!("CARGO_PKG_VERSION"))
+                      .author("Pascal Hertleif <killercup@gmail.com>")
+                      .about("Simplified and community-driven man pages")
+                      .arg(Arg::with_name("command")
+                               .help("Fetch the docs for command and render them to the \
+                                      terminal.")
+                               .required(true)
+                               .index(1))
+                      .get_matches();
 
     let command = matches.value_of("command").unwrap();
 
     fetch_tldr(command, "common")
-    .or_else(|_| fetch_tldr(command, PLATFORM))
-    .and_then(|mut res| render_tldr(&mut res))
-    .unwrap_or_else(|err| {
-        writeln!(stderr(), "{}", err).unwrap();
-        std::process::exit(1);
-    });
+        .or_else(|_| fetch_tldr(command, PLATFORM))
+        .and_then(|mut res| render_tldr(&mut res))
+        .unwrap_or_else(|err| {
+            writeln!(stderr(), "{}", err).unwrap();
+            std::process::exit(1);
+        });
 }
