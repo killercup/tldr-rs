@@ -8,3 +8,8 @@ version = "0.1.0"
 clap = "1.5.4"
 hyper = "0.7.1"
 quick-error = "0.2.0"
+clippy = {version = "0.0.33", optional = true}
+
+[features]
+default = []
+dev = ["clippy"]
