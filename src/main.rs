@@ -18,6 +18,8 @@ extern crate quick_error;
 use std::io::{stderr, stdout, Read, Write};
 use clap::{Arg, App};
 use hyper::client::response::Response as HttpResponse;
+use hyper::header::{Connection, Accept, qitem};
+use hyper::mime::{Mime, TopLevel, SubLevel};
 
 #[cfg(target_os = "macos")]
 const PLATFORM: &'static str = "osx";
@@ -31,8 +33,10 @@ fn fetch_tldr(command: &str, platform: &str) -> Result<HttpResponse, Error> {
                       page = command);
 
     let res = try!(client.get(&url)
-                         .header(hyper::header::Connection::close())
-                         .header(hyper::header::ContentType::plaintext())
+                         .header(Connection::close())
+                         .header(Accept(vec![
+                            qitem(Mime(TopLevel::Text, SubLevel::Plain, vec![])),
+                         ]))
                          .send()
                          .map_err(|err| Error::HttpRequest(command.to_owned(), err)));
 
