@@ -5,3 +5,6 @@ name = "tldr"
 version = "0.1.0"
 
 [dependencies]
+clap = "1.5.4"
+hyper = "0.7.1"
+quick-error = "0.2.0"
